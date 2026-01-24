@@ -102,6 +102,9 @@ ALERT_API_URL = os.getenv("ALERT_API_URL", "https://siren.pp.ua/api/v3/alerts/31
 ALERT_CHECK_INTERVAL = 10  # seconds
 ALERT_TIMEOUT = 5  # HTTP request timeout in seconds
 
+# Test mode: if enabled, forwards all messages regardless of alert status
+TEST_MODE = os.getenv("TEST_MODE", "").lower() in ("true", "1", "yes", "on")
+
 # Media group configuration
 MEDIA_GROUP_TIMEOUT = 2  # seconds to wait for all media group messages
 
@@ -651,8 +654,14 @@ class TelegramForwarder:
             """
             Handle new messages from source channels.
             Only forwards messages when alert_event is set (alert is active).
+            In TEST_MODE, forwards all messages regardless of alert status.
             """
             try:
+                # In test mode, always forward (bypass alert check)
+                if TEST_MODE:
+                    await self.media_collector.handle_message(event.message)
+                    return
+                
                 # Check if alert is active before forwarding
                 if not self.alert_event.is_set():
                     # Alert is not active, skip forwarding
@@ -667,7 +676,13 @@ class TelegramForwarder:
         logger.info(f"👂 Listening to {len(self.source_entities)} channels...")
         logger.info(f"🎯 Will forward to channel: {TARGET_CHANNEL}")
         logger.info("📸 Media groups (albums) will be forwarded together")
-        logger.info("⚠️ Forwarding will only occur during active Kyiv AIR alerts")
+        
+        if TEST_MODE:
+            logger.warning("🧪 TEST MODE ENABLED - All messages will be forwarded regardless of alert status!")
+            logger.warning("🧪 Set TEST_MODE=false to enable normal alert filtering")
+        else:
+            logger.info("⚠️ Forwarding will only occur during active Kyiv AIR alerts")
+        
         logger.info("✅ Forwarder is running. Press Ctrl+C to stop.")
         
         try:
@@ -696,7 +711,7 @@ async def main() -> None:
     if API_ID == 0 or not API_HASH:
         logger.error("❌ TG_API_ID and TG_API_HASH must be set as environment variables")
         logger.error("   Please set: TG_API_ID, TG_API_HASH, TG_TARGET_CHANNEL")
-        logger.error("   Optional: TG_SESSION, TG_SESSION_STRING, TG_SOURCE_CHANNELS, ALERT_API_URL")
+        logger.error("   Optional: TG_SESSION, TG_SESSION_STRING, TG_SOURCE_CHANNELS, ALERT_API_URL, TEST_MODE")
         return
     
     if TARGET_CHANNEL == 0:

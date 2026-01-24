@@ -29,3 +29,6 @@ logs/
 # Environment variables (if stored locally)
 .env
 .env.local
+
+# Generated session string (if created)
+make_session.py
