@@ -93,7 +93,7 @@ SESSION = os.getenv("TG_SESSION", "tele_alert")
 SESSION_STRING = os.getenv("TG_SESSION_STRING", "")  # Optional: for StringSession
 SOURCE_CHANNELS = [x.strip() for x in os.getenv(
     "TG_SOURCE_CHANNELS",
-    "war_monitor,Ukraine_UA_24_7,kievreal1,StrategicaviationT,kiev_levyy_bereg,dangerousKiev,kyiv_nebo"
+    "war_monitor,kievreal1,StrategicaviationT,kiev_levyy_bereg,dangerousKiev,kyiv_nebo"
 ).split(",") if x.strip()]
 TARGET_CHANNEL = int(os.getenv("TG_TARGET_CHANNEL", "0"))
 
